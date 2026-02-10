@@ -22,28 +22,23 @@ export function useWebSocket() {
   const reconnectTimerRef = useRef(null);
   const activeSymbolRef = useRef('BTCUSDT');
 
-  const {
-    setConnectionStatus,
-    handleSnapshot,
-    handleTradeMessage,
-    handleTickerMessage,
-    handleOrderBookMessage,
-    handleKlineMessage,
-    activeSymbol,
-  } = useMarketStore();
-
+  // Subscribe only to activeSymbol to avoid re-renders on data updates
+  const activeSymbol = useMarketStore((s) => s.activeSymbol);
   activeSymbolRef.current = activeSymbol;
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
 
-    setConnectionStatus('connecting');
+    // Use getState() for stable action references — never triggers re-renders
+    const store = useMarketStore.getState();
+    store.setConnectionStatus('connecting');
+
     const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
     ws.onopen = () => {
       console.log('[WS] Connected to backend');
-      setConnectionStatus('connected');
+      useMarketStore.getState().setConnectionStatus('connected');
       reconnectAttemptRef.current = 0;
 
       // Subscribe to active symbol
@@ -53,26 +48,27 @@ export function useWebSocket() {
     ws.onmessage = (event) => {
       try {
         const msg = JSON.parse(event.data);
+        const actions = useMarketStore.getState();
 
         switch (msg.type) {
           case 'snapshot':
-            handleSnapshot(msg.symbol, msg.data);
+            actions.handleSnapshot(msg.symbol, msg.data);
             break;
           case 'trade':
-            handleTradeMessage(msg);
+            actions.handleTradeMessage(msg);
             break;
           case 'ticker':
-            handleTickerMessage(msg);
+            actions.handleTickerMessage(msg);
             break;
           case 'depth':
-            handleOrderBookMessage(msg);
+            actions.handleOrderBookMessage(msg);
             break;
           case 'kline':
-            handleKlineMessage(msg);
+            actions.handleKlineMessage(msg);
             break;
           case 'status':
             if (msg.status === 'disconnected') {
-              setConnectionStatus('reconnecting');
+              actions.setConnectionStatus('reconnecting');
             }
             break;
           case 'pong':
@@ -87,14 +83,14 @@ export function useWebSocket() {
 
     ws.onclose = () => {
       console.log('[WS] Disconnected from backend');
-      setConnectionStatus('disconnected');
+      useMarketStore.getState().setConnectionStatus('disconnected');
       scheduleReconnect();
     };
 
     ws.onerror = (err) => {
       console.error('[WS] Error:', err);
     };
-  }, [setConnectionStatus, handleSnapshot, handleTradeMessage, handleTickerMessage, handleOrderBookMessage, handleKlineMessage]);
+  }, []); // No dependencies — all state access via getState()
 
   const scheduleReconnect = useCallback(() => {
     const attempt = reconnectAttemptRef.current;
@@ -102,12 +98,12 @@ export function useWebSocket() {
     reconnectAttemptRef.current++;
 
     console.log(`[WS] Reconnecting in ${delay}ms (attempt ${attempt + 1})`);
-    setConnectionStatus('reconnecting');
+    useMarketStore.getState().setConnectionStatus('reconnecting');
 
     reconnectTimerRef.current = setTimeout(() => {
       connect();
     }, delay);
-  }, [connect, setConnectionStatus]);
+  }, [connect]);
 
   // Switch symbol
   const switchSymbol = useCallback((symbol) => {
