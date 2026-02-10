@@ -1,6 +1,6 @@
 import React, { useCallback } from 'react';
-import { useWebSocket } from './hooks/useWebSocket';
 import { useMarketStore } from './stores/marketStore';
+import { switchSymbol } from './services/websocket';
 import ConnectionStatus from './components/ConnectionStatus';
 import AssetSelector from './components/AssetSelector';
 import LivePrice from './components/LivePrice';
@@ -10,12 +10,11 @@ import MarketStats from './components/MarketStats';
 import TradeFeed from './components/TradeFeed';
 
 export default function App() {
-  const { switchSymbol } = useWebSocket();
   const activeSymbol = useMarketStore((s) => s.activeSymbol);
 
   const handleSymbolSwitch = useCallback((symbol) => {
     switchSymbol(symbol);
-  }, [switchSymbol]);
+  }, []);
 
   return (
     <div className="min-h-screen bg-bg-primary p-4 lg:p-6">

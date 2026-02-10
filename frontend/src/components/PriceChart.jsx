@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useMemo } from 'react';
 import { useMarketStore } from '../stores/marketStore';
 import { createChart, ColorType, CrosshairMode } from 'lightweight-charts';
 
+const EMPTY_ARRAY = [];
+
 const PriceChart = React.memo(function PriceChart() {
   const chartContainerRef = useRef(null);
   const chartRef = useRef(null);
@@ -9,7 +11,7 @@ const PriceChart = React.memo(function PriceChart() {
   const volumeSeriesRef = useRef(null);
 
   const activeSymbol = useMarketStore((s) => s.activeSymbol);
-  const klines = useMarketStore((s) => s.klines[s.activeSymbol] || []);
+  const klines = useMarketStore((s) => s.klines[s.activeSymbol]) || EMPTY_ARRAY;
 
   // Create chart on mount
   useEffect(() => {

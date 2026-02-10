@@ -3,9 +3,10 @@ import { useMarketStore } from '../stores/marketStore';
 import { formatPrice, formatQuantity, formatTime } from '../utils/formatters';
 
 const MAX_VISIBLE_TRADES = 30;
+const EMPTY_ARRAY = [];
 
 const TradeFeed = React.memo(function TradeFeed() {
-  const trades = useMarketStore((s) => s.trades[s.activeSymbol] || []);
+  const trades = useMarketStore((s) => s.trades[s.activeSymbol]) || EMPTY_ARRAY;
 
   const recentTrades = useMemo(() => {
     return trades.slice(-MAX_VISIBLE_TRADES).reverse();
