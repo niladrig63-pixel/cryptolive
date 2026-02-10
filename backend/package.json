@@ -1,0 +1,19 @@
+{
+  "name": "cryptolive-backend",
+  "version": "1.0.0",
+  "description": "F.L.O.W. Market Engine — Real-time crypto WebSocket backend",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "test:stream": "node tests/stream_test.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "sql.js": "^1.11.0",
+    "ws": "^8.18.0",
+    "zod": "^3.24.0"
+  }
+}
